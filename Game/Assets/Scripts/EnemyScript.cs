@@ -1,21 +1,84 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-public class EnemyScript : MonoBehaviour {
-
+/// <summary>
+/// Enemy generic behavior
+/// </summary>
+public class EnemyScript : MonoBehaviour
+{
+	private bool hasSpawn;
+	private PolupiMoveScript moveScript;
 	private WeaponScript[] weapons;
-
-	void Awake() {
-		weapons = GetComponentsInChildren<WeaponScript> ();
+	
+	void Awake()
+	{
+		// Retrieve the weapon only once
+		weapons = GetComponentsInChildren<WeaponScript>();
+		
+		// Retrieve scripts to disable when not spawn
+		moveScript = GetComponent<PolupiMoveScript>();
 	}
-
-	void Update() {
-		//Set polupi to auto-fire
-		foreach(WeaponScript weapon in weapons) {
-			if (weapon != null && weapon.canAttack) {
-				//Indicating this weapon is firing FROM an enemy.
-				weapon.Attack (true);
+	
+	// 1 - Disable everything
+	void Start()
+	{
+		hasSpawn = false;
+		
+		// Disable everything
+		// -- collider
+		collider2D.enabled = false;
+		// -- Moving
+		moveScript.enabled = false;
+		// -- Shooting
+		foreach (WeaponScript weapon in weapons)
+		{
+			weapon.enabled = false;
+		}
+	}
+	
+	void Update()
+	{
+		// 2 - Check if the enemy has spawned.
+		if (hasSpawn == false)
+		{
+			if (renderer.IsVisibleFrom(Camera.allCameras[1]))
+			{
+				Spawn();
 			}
+		}
+		else
+		{
+			// Auto-fire
+			foreach (WeaponScript weapon in weapons)
+			{
+				if (weapon != null && weapon.enabled && weapon.canAttack)
+				{
+					weapon.Attack(true);
+					SoundEffectsHelper.Instance.MakeEnemyShotSound();
+				}
+			}
+			
+			// 4 - Out of the camera ? Destroy the game object.
+			if (renderer.IsVisibleFrom(Camera.allCameras[1]) == false)
+			{
+				Destroy(gameObject);
+			}
+		}
+	}
+	
+	// 3 - Activate itself.
+	private void Spawn()
+	{
+		hasSpawn = true;
+		
+		// Enable everything
+		// -- Collider
+		collider2D.enabled = true;
+		// -- Moving
+		moveScript.enabled = true;
+		// -- Shooting
+		foreach (WeaponScript weapon in weapons)
+		{
+			weapon.enabled = true;
 		}
 	}
 }

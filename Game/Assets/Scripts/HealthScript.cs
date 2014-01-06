@@ -20,6 +20,9 @@ public class HealthScript : MonoBehaviour
 				Destroy (collider.gameObject);
 			}
 			if(hp <= 0) {
+				//Explosion before gameObject is destroyed:
+				ParticleEffectsHelper.Instance.Explosion(transform.position);
+				SoundEffectsHelper.Instance.MakeExplosionSound();
 				Destroy (gameObject);
 			}
 
